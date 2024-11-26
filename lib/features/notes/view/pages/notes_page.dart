@@ -1,36 +1,85 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
-class NotesPage extends StatelessWidget {
+class NotesPage extends StatefulWidget {
   const NotesPage({super.key});
 
   @override
+  State<NotesPage> createState() => _NotesPageState();
+}
+
+class _NotesPageState extends State<NotesPage> {
+  double opacityOut = 1;
+  double opacityIn = 0;
+
+  double maxAppBarHeight = 0;
+  late final ScrollController _scrollController;
+
+  @override
+  void initState() {
+    _scrollController = ScrollController();
+
+    /// Listen to scroll events
+    _scrollController.addListener(() {
+      final currentScroll = _scrollController.offset;
+      final maxScroll = maxAppBarHeight;
+
+      final percentage = min((currentScroll / maxScroll) * 100, 100);
+
+      /// Change the opacity of the text in appbar flexible space
+      setState(() {
+        opacityOut = max(0, 1 - ((percentage / 100) * 2.5));
+
+        final inPercentage = max(0, percentage - 30);
+        opacityIn = min(1, (inPercentage / 60) * 3);
+      });
+    });
+
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    maxAppBarHeight = MediaQuery.sizeOf(context).height * 0.3;
+
     return Scaffold(
       body: CustomScrollView(
+        controller: _scrollController,
         slivers: [
           SliverAppBar(
             centerTitle: true,
-            toolbarHeight: 40,
-            collapsedHeight: 40,
-            flexibleSpace: const FlexibleSpaceBar(
+            toolbarHeight: 0,
+            collapsedHeight: 0,
+            flexibleSpace: FlexibleSpaceBar(
               background: SafeArea(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Expanded(
                       child: Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              'All notes',
-                              style: TextStyle(
-                                fontSize: 32,
+                        child: Opacity(
+                          opacity: opacityOut,
+                          child: const Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'All notes',
+                                style: TextStyle(
+                                  fontSize: 32,
+                                ),
                               ),
-                            ),
-                            Text('3 notes'),
-                          ],
+                              Text('3 notes'),
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -39,7 +88,7 @@ class NotesPage extends StatelessWidget {
               ),
             ),
             pinned: true,
-            expandedHeight: MediaQuery.sizeOf(context).height * 0.3,
+            expandedHeight: maxAppBarHeight,
           ),
 
           /// App bar icons
@@ -55,12 +104,15 @@ class NotesPage extends StatelessWidget {
                   ),
                   onPressed: () {},
                 ),
-                const Expanded(
-                  child: Text(
-                    'All notes',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w500,
+                Expanded(
+                  child: Opacity(
+                    opacity: opacityIn,
+                    child: const Text(
+                      'All notes',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
                 ),
