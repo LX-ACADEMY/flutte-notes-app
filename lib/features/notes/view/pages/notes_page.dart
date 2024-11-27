@@ -16,10 +16,12 @@ class _NotesPageState extends State<NotesPage> {
 
   double maxAppBarHeight = 0;
   late final ScrollController _scrollController;
+  late final GlobalKey<ScaffoldState> _scaffoldKey;
 
   @override
   void initState() {
     _scrollController = ScrollController();
+    _scaffoldKey = GlobalKey<ScaffoldState>();
 
     /// Listen to scroll events
     _scrollController.addListener(() {
@@ -52,11 +54,34 @@ class _NotesPageState extends State<NotesPage> {
     return min((currentScroll / maxScroll) * 100, 100);
   }
 
+  /// Open the drawer
+  void openDrawer() {
+    _scaffoldKey.currentState!.openDrawer();
+  }
+
   @override
   Widget build(BuildContext context) {
     maxAppBarHeight = MediaQuery.sizeOf(context).height * 0.3;
 
     return Scaffold(
+      key: _scaffoldKey,
+      drawer: Drawer(
+        child: Column(
+          children: [
+            const DrawerHeader(
+              child: Text('Drawer Header'),
+            ),
+            ListTile(
+              title: const Text('Item 1'),
+              onTap: () {},
+            ),
+            ListTile(
+              title: const Text('Item 2'),
+              onTap: () {},
+            ),
+          ],
+        ),
+      ),
       body: Listener(
         onPointerUp: (event) {
           final percentage = getAppBarScrollPercentage();
@@ -123,7 +148,7 @@ class _NotesPageState extends State<NotesPage> {
                         colorFilter: const ColorFilter.mode(
                             Colors.black, BlendMode.srcIn),
                       ),
-                      onPressed: () {},
+                      onPressed: openDrawer,
                     ),
                     Expanded(
                       child: Opacity(
