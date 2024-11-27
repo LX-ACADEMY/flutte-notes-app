@@ -1,7 +1,10 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
+import 'package:notes/features/notes/view/widgets/app_bar_buttons_widget.dart';
+import 'package:notes/features/notes/view/widgets/app_bar_widget.dart';
+import 'package:notes/features/notes/view/widgets/drawer_widget.dart';
+import 'package:notes/features/notes/view/widgets/notes_grid_widget.dart';
 
 class NotesPage extends StatefulWidget {
   const NotesPage({super.key});
@@ -23,7 +26,7 @@ class _NotesPageState extends State<NotesPage> {
     _scrollController = ScrollController();
     _scaffoldKey = GlobalKey<ScaffoldState>();
 
-    /// Listen to scroll events
+    /// Listen to scroll events to change the opacity of the text in appbar
     _scrollController.addListener(() {
       final percentage = getAppBarScrollPercentage();
 
@@ -65,23 +68,7 @@ class _NotesPageState extends State<NotesPage> {
 
     return Scaffold(
       key: _scaffoldKey,
-      drawer: Drawer(
-        child: Column(
-          children: [
-            const DrawerHeader(
-              child: Text('Drawer Header'),
-            ),
-            ListTile(
-              title: const Text('Item 1'),
-              onTap: () {},
-            ),
-            ListTile(
-              title: const Text('Item 2'),
-              onTap: () {},
-            ),
-          ],
-        ),
-      ),
+      drawer: const DrawerWidget(),
       body: Listener(
         onPointerUp: (event) {
           final percentage = getAppBarScrollPercentage();
@@ -99,87 +86,14 @@ class _NotesPageState extends State<NotesPage> {
         child: CustomScrollView(
           controller: _scrollController,
           slivers: [
-            SliverAppBar(
-              centerTitle: true,
-              toolbarHeight: 0,
-              collapsedHeight: 0,
-              flexibleSpace: FlexibleSpaceBar(
-                background: SafeArea(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Expanded(
-                        child: Center(
-                          child: Opacity(
-                            opacity: opacityOut,
-                            child: const Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  'All notes',
-                                  style: TextStyle(
-                                    fontSize: 32,
-                                  ),
-                                ),
-                                Text('3 notes'),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              pinned: true,
-              expandedHeight: maxAppBarHeight,
+            AppBarWidget(
+              titleOpacity: opacityOut,
+              maxAppBarHeight: maxAppBarHeight,
             ),
 
             /// App bar icons
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                child: Row(
-                  children: [
-                    IconButton(
-                      icon: SvgPicture.asset(
-                        'assets/icons/drawer.svg',
-                        height: 20,
-                        colorFilter: const ColorFilter.mode(
-                            Colors.black, BlendMode.srcIn),
-                      ),
-                      onPressed: openDrawer,
-                    ),
-                    Expanded(
-                      child: Opacity(
-                        opacity: opacityIn,
-                        child: const Text(
-                          'All notes',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                    ),
-                    IconButton(
-                        onPressed: () {}, icon: const Icon(Icons.search)),
-                    IconButton(
-                      icon: const Icon(Icons.more_vert),
-                      onPressed: () {},
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            SliverToBoxAdapter(
-              child: SizedBox(
-                height: MediaQuery.sizeOf(context).height,
-                child: const Center(
-                  child: Text('All Notes'),
-                ),
-              ),
-            )
+            AppBarButtonsWidgets(titleOpacity: opacityIn),
+            const NotesGridWidget()
           ],
         ),
       ),
