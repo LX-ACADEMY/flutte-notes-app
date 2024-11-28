@@ -46,6 +46,13 @@ class NotesPage extends HookWidget {
     return Scaffold(
       key: scaffoldKey,
       drawer: const DrawerWidget(),
+      floatingActionButton: FloatingActionButton(
+        shape: const CircleBorder(),
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.red,
+        onPressed: () {},
+        child: const Icon(Icons.edit),
+      ),
       body: Listener(
         onPointerUp: (event) {
           final percentage = getAppBarScrollPercentage();
