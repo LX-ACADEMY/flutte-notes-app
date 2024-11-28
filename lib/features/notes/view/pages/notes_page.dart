@@ -1,98 +1,78 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:notes/features/notes/view/widgets/app_bar_buttons_widget.dart';
 import 'package:notes/features/notes/view/widgets/app_bar_widget.dart';
 import 'package:notes/features/notes/view/widgets/drawer_widget.dart';
 import 'package:notes/features/notes/view/widgets/notes_grid_widget.dart';
 
-class NotesPage extends StatefulWidget {
+class NotesPage extends HookWidget {
   const NotesPage({super.key});
 
   @override
-  State<NotesPage> createState() => _NotesPageState();
-}
+  Widget build(BuildContext context) {
+    final opacityOut = useState<double>(1);
+    final opacityIn = useState<double>(0);
 
-class _NotesPageState extends State<NotesPage> {
-  double opacityOut = 1;
-  double opacityIn = 0;
+    final maxAppBarHeight = MediaQuery.sizeOf(context).height * 0.3;
 
-  double maxAppBarHeight = 0;
-  late final ScrollController _scrollController;
-  late final GlobalKey<ScaffoldState> _scaffoldKey;
+    final scrollController = useScrollController();
 
-  @override
-  void initState() {
-    _scrollController = ScrollController();
-    _scaffoldKey = GlobalKey<ScaffoldState>();
+    final scaffoldKey = useMemoized(() => GlobalKey<ScaffoldState>(), []);
 
-    /// Listen to scroll events to change the opacity of the text in appbar
-    _scrollController.addListener(() {
-      final percentage = getAppBarScrollPercentage();
+    /// Get the percentage of app bar scroll
+    double getAppBarScrollPercentage() {
+      final currentScroll = scrollController.offset;
+      final maxScroll = maxAppBarHeight;
 
-      /// Change the opacity of the text in appbar flexible space
-      setState(() {
-        opacityOut = max(0, 1 - ((percentage / 100) * 2.5));
+      return min((currentScroll / maxScroll) * 100, 100);
+    }
+
+    useEffect(() {
+      scrollController.addListener(() {
+        final percentage = getAppBarScrollPercentage();
+
+        /// Change the opacity of the text in appbar flexible space
+        opacityOut.value = max(0, 1 - ((percentage / 100) * 2.5));
 
         final inPercentage = max(0, percentage - 30);
-        opacityIn = min(1, (inPercentage / 60) * 3);
+        opacityIn.value = min(1, (inPercentage / 60) * 3);
       });
-    });
 
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-
-    super.dispose();
-  }
-
-  /// Get the percentage of app bar scroll
-  double getAppBarScrollPercentage() {
-    final currentScroll = _scrollController.offset;
-    final maxScroll = maxAppBarHeight;
-
-    return min((currentScroll / maxScroll) * 100, 100);
-  }
-
-  /// Open the drawer
-  void openDrawer() {
-    _scaffoldKey.currentState!.openDrawer();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    maxAppBarHeight = MediaQuery.sizeOf(context).height * 0.3;
+      return null;
+    }, []);
 
     return Scaffold(
-      key: _scaffoldKey,
+      key: scaffoldKey,
       drawer: const DrawerWidget(),
       body: Listener(
         onPointerUp: (event) {
           final percentage = getAppBarScrollPercentage();
 
           if (percentage > 45) {
-            _scrollController.animateTo(maxAppBarHeight,
+            scrollController.animateTo(maxAppBarHeight,
                 duration: const Duration(milliseconds: 200),
                 curve: Curves.linear);
           } else {
-            _scrollController.animateTo(0,
+            scrollController.animateTo(0,
                 duration: const Duration(milliseconds: 200),
                 curve: Curves.linear);
           }
         },
         child: CustomScrollView(
-          controller: _scrollController,
+          controller: scrollController,
           slivers: [
             AppBarWidget(
-              titleOpacity: opacityOut,
+              titleOpacity: opacityOut.value,
               maxAppBarHeight: maxAppBarHeight,
             ),
 
             /// App bar icons
-            AppBarButtonsWidgets(titleOpacity: opacityIn),
+            AppBarButtonsWidgets(
+              titleOpacity: opacityIn.value,
+              scaffoldKey: scaffoldKey,
+            ),
             const NotesGridWidget()
           ],
         ),

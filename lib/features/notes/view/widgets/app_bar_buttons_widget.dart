@@ -5,12 +5,19 @@ class AppBarButtonsWidgets extends StatelessWidget {
   const AppBarButtonsWidgets({
     super.key,
     required this.titleOpacity,
+    required this.scaffoldKey,
   });
 
   final double titleOpacity;
+  final GlobalKey<ScaffoldState> scaffoldKey;
 
   @override
   Widget build(BuildContext context) {
+    /// Open the drawer
+    void openDrawer() {
+      scaffoldKey.currentState!.openDrawer();
+    }
+
     return SliverToBoxAdapter(
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 16),
@@ -23,7 +30,7 @@ class AppBarButtonsWidgets extends StatelessWidget {
                 colorFilter:
                     const ColorFilter.mode(Colors.black, BlendMode.srcIn),
               ),
-              onPressed: () {},
+              onPressed: openDrawer,
             ),
             Expanded(
               child: Opacity(
