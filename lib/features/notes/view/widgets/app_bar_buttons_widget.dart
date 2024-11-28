@@ -5,18 +5,18 @@ class AppBarButtonsWidgets extends StatelessWidget {
   const AppBarButtonsWidgets({
     super.key,
     required this.titleOpacity,
-    required this.scaffoldKey,
+    required this.onDrawerOpen,
   });
 
   final double titleOpacity;
-  final GlobalKey<ScaffoldState> scaffoldKey;
+  final void Function() onDrawerOpen;
 
   @override
   Widget build(BuildContext context) {
     return SliverPersistentHeader(
       delegate: AppBarButtonsDelegate(
-        scaffoldKey: scaffoldKey,
         titleOpacity: titleOpacity,
+        onDrawerOpen: onDrawerOpen,
       ),
       pinned: true,
     );
@@ -24,16 +24,11 @@ class AppBarButtonsWidgets extends StatelessWidget {
 }
 
 class AppBarButtonsDelegate extends SliverPersistentHeaderDelegate {
-  final GlobalKey<ScaffoldState> scaffoldKey;
-  double titleOpacity;
+  final double titleOpacity;
+  final VoidCallback onDrawerOpen;
 
-  AppBarButtonsDelegate(
-      {required this.scaffoldKey, required this.titleOpacity});
-
-  /// Open the drawer
-  void openDrawer() {
-    scaffoldKey.currentState!.openDrawer();
-  }
+  const AppBarButtonsDelegate(
+      {required this.titleOpacity, required this.onDrawerOpen});
 
   @override
   Widget build(
@@ -49,7 +44,7 @@ class AppBarButtonsDelegate extends SliverPersistentHeaderDelegate {
               colorFilter:
                   const ColorFilter.mode(Colors.black, BlendMode.srcIn),
             ),
-            onPressed: openDrawer,
+            onPressed: onDrawerOpen,
           ),
           Expanded(
             child: Opacity(
@@ -81,7 +76,6 @@ class AppBarButtonsDelegate extends SliverPersistentHeaderDelegate {
 
   @override
   bool shouldRebuild(AppBarButtonsDelegate oldDelegate) {
-    return titleOpacity != oldDelegate.titleOpacity ||
-        scaffoldKey != oldDelegate.scaffoldKey;
+    return titleOpacity != oldDelegate.titleOpacity;
   }
 }

@@ -16,12 +16,20 @@ class NotesPage extends HookWidget {
     final opacityIn = useState<double>(0);
 
     final maxAppBarHeight = MediaQuery.sizeOf(context).height * 0.3;
+    final maxDrawerWidth = MediaQuery.sizeOf(context).width * 0.8;
 
     final scrollController = useScrollController();
-
+    final animationController = useAnimationController(
+      duration: const Duration(milliseconds: 200),
+    );
     final scaffoldKey = useMemoized(() => GlobalKey<ScaffoldState>(), []);
 
-    final maxDrawerWidth = MediaQuery.sizeOf(context).width * 0.8;
+    final drawerTranslateAnimation =
+        Tween<double>(begin: -maxDrawerWidth, end: 0)
+            .animate(animationController);
+    final scaffolTranslateAnimation =
+        Tween<double>(begin: 0, end: maxDrawerWidth)
+            .animate(animationController);
 
     /// Get the percentage of app bar scroll
     double getAppBarScrollPercentage() {
@@ -29,6 +37,10 @@ class NotesPage extends HookWidget {
       final maxScroll = maxAppBarHeight;
 
       return min((currentScroll / maxScroll) * 100, 100);
+    }
+
+    void openDrawer() {
+      animationController.forward();
     }
 
     useEffect(() {
@@ -49,64 +61,81 @@ class NotesPage extends HookWidget {
       color: Colors.white,
       child: SizedBox(
         width: MediaQuery.sizeOf(context).width,
-        child: Stack(
-          children: [
-            Transform.translate(
-              offset: Offset(maxDrawerWidth, 0),
-              child: Scaffold(
-                key: scaffoldKey,
-                floatingActionButton: FloatingActionButton(
-                  shape: const CircleBorder(),
-                  backgroundColor: Colors.white,
-                  foregroundColor: Colors.red,
-                  onPressed: () {},
-                  child: const Icon(Icons.edit),
-                ),
-                body: Listener(
-                  onPointerUp: (event) {
-                    final percentage = getAppBarScrollPercentage();
+        child: AnimatedBuilder(
+            animation: animationController,
+            child: Scaffold(
+              key: scaffoldKey,
+              floatingActionButton: FloatingActionButton(
+                shape: const CircleBorder(),
+                backgroundColor: Colors.white,
+                foregroundColor: Colors.red,
+                onPressed: () {},
+                child: const Icon(Icons.edit),
+              ),
+              body: Listener(
+                onPointerUp: (event) {
+                  final percentage = getAppBarScrollPercentage();
 
-                    if (percentage > 45) {
-                      scrollController.animateTo(maxAppBarHeight,
-                          duration: const Duration(milliseconds: 200),
-                          curve: Curves.linear);
-                    } else {
-                      scrollController.animateTo(0,
-                          duration: const Duration(milliseconds: 200),
-                          curve: Curves.linear);
-                    }
-                  },
-                  child: CustomScrollView(
-                    controller: scrollController,
-                    slivers: [
-                      AppBarWidget(
-                        titleOpacity: opacityOut.value,
-                        maxAppBarHeight: maxAppBarHeight,
-                      ),
+                  if (percentage > 45) {
+                    scrollController.animateTo(maxAppBarHeight,
+                        duration: const Duration(milliseconds: 200),
+                        curve: Curves.linear);
+                  } else {
+                    scrollController.animateTo(0,
+                        duration: const Duration(milliseconds: 200),
+                        curve: Curves.linear);
+                  }
+                },
+                child: CustomScrollView(
+                  controller: scrollController,
+                  slivers: [
+                    AppBarWidget(
+                      titleOpacity: opacityOut.value,
+                      maxAppBarHeight: maxAppBarHeight,
+                    ),
 
-                      /// App bar icons
-                      AppBarButtonsWidgets(
-                        titleOpacity: opacityIn.value,
-                        scaffoldKey: scaffoldKey,
-                      ),
-                      const NotesGridWidget()
-                    ],
-                  ),
+                    /// App bar icons
+                    AppBarButtonsWidgets(
+                      titleOpacity: opacityIn.value,
+                      onDrawerOpen: openDrawer,
+                    ),
+                    const NotesGridWidget()
+                  ],
                 ),
               ),
             ),
+            builder: (context, child) {
+              return Stack(
+                children: [
+                  Transform.translate(
+                    offset: Offset(scaffolTranslateAnimation.value, 0),
+                    child: child,
+                  ),
 
-            /// Overlay
-            Container(
-              width: MediaQuery.sizeOf(context).width,
-              height: MediaQuery.sizeOf(context).height,
-              color: Colors.black.withOpacity(0.2),
-            ),
+                  /// Overlay
+                  if (animationController.value > 0)
+                    GestureDetector(
+                      onTap: () {
+                        animationController.reverse();
+                      },
+                      child: Opacity(
+                        opacity: animationController.value,
+                        child: Container(
+                          width: MediaQuery.sizeOf(context).width,
+                          height: MediaQuery.sizeOf(context).height,
+                          color: Colors.black.withOpacity(0.2),
+                        ),
+                      ),
+                    ),
 
-            /// Drawer
-            DrawerWidget(maxDrawerWidth: maxDrawerWidth)
-          ],
-        ),
+                  /// Drawer
+                  Transform.translate(
+                    offset: Offset(drawerTranslateAnimation.value, 0),
+                    child: const DrawerWidget(),
+                  )
+                ],
+              );
+            }),
       ),
     );
   }

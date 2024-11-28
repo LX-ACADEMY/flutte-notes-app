@@ -3,10 +3,7 @@ import 'package:flutter/material.dart';
 class DrawerWidget extends StatelessWidget {
   const DrawerWidget({
     super.key,
-    required this.maxDrawerWidth,
   });
-
-  final double maxDrawerWidth;
 
   @override
   Widget build(BuildContext context) {
@@ -14,7 +11,7 @@ class DrawerWidget extends StatelessWidget {
       child: Material(
         color: Colors.transparent,
         child: Container(
-          width: maxDrawerWidth,
+          width: MediaQuery.sizeOf(context).width * 0.8,
           margin: const EdgeInsets.symmetric(
             vertical: 24,
           ),
