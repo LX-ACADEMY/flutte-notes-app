@@ -21,6 +21,8 @@ class NotesPage extends HookWidget {
 
     final scaffoldKey = useMemoized(() => GlobalKey<ScaffoldState>(), []);
 
+    final maxDrawerWidth = MediaQuery.sizeOf(context).width * 0.8;
+
     /// Get the percentage of app bar scroll
     double getAppBarScrollPercentage() {
       final currentScroll = scrollController.offset;
@@ -43,44 +45,66 @@ class NotesPage extends HookWidget {
       return null;
     }, []);
 
-    return Scaffold(
-      key: scaffoldKey,
-      drawer: const DrawerWidget(),
-      floatingActionButton: FloatingActionButton(
-        shape: const CircleBorder(),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.red,
-        onPressed: () {},
-        child: const Icon(Icons.edit),
-      ),
-      body: Listener(
-        onPointerUp: (event) {
-          final percentage = getAppBarScrollPercentage();
+    return Container(
+      color: Colors.white,
+      child: SizedBox(
+        width: MediaQuery.sizeOf(context).width,
+        child: Stack(
+          children: [
+            Transform.translate(
+              offset: Offset(maxDrawerWidth, 0),
+              child: Scaffold(
+                key: scaffoldKey,
+                floatingActionButton: FloatingActionButton(
+                  shape: const CircleBorder(),
+                  backgroundColor: Colors.white,
+                  foregroundColor: Colors.red,
+                  onPressed: () {},
+                  child: const Icon(Icons.edit),
+                ),
+                body: Listener(
+                  onPointerUp: (event) {
+                    final percentage = getAppBarScrollPercentage();
 
-          if (percentage > 45) {
-            scrollController.animateTo(maxAppBarHeight,
-                duration: const Duration(milliseconds: 200),
-                curve: Curves.linear);
-          } else {
-            scrollController.animateTo(0,
-                duration: const Duration(milliseconds: 200),
-                curve: Curves.linear);
-          }
-        },
-        child: CustomScrollView(
-          controller: scrollController,
-          slivers: [
-            AppBarWidget(
-              titleOpacity: opacityOut.value,
-              maxAppBarHeight: maxAppBarHeight,
+                    if (percentage > 45) {
+                      scrollController.animateTo(maxAppBarHeight,
+                          duration: const Duration(milliseconds: 200),
+                          curve: Curves.linear);
+                    } else {
+                      scrollController.animateTo(0,
+                          duration: const Duration(milliseconds: 200),
+                          curve: Curves.linear);
+                    }
+                  },
+                  child: CustomScrollView(
+                    controller: scrollController,
+                    slivers: [
+                      AppBarWidget(
+                        titleOpacity: opacityOut.value,
+                        maxAppBarHeight: maxAppBarHeight,
+                      ),
+
+                      /// App bar icons
+                      AppBarButtonsWidgets(
+                        titleOpacity: opacityIn.value,
+                        scaffoldKey: scaffoldKey,
+                      ),
+                      const NotesGridWidget()
+                    ],
+                  ),
+                ),
+              ),
             ),
 
-            /// App bar icons
-            AppBarButtonsWidgets(
-              titleOpacity: opacityIn.value,
-              scaffoldKey: scaffoldKey,
+            /// Overlay
+            Container(
+              width: MediaQuery.sizeOf(context).width,
+              height: MediaQuery.sizeOf(context).height,
+              color: Colors.black.withOpacity(0.2),
             ),
-            const NotesGridWidget()
+
+            /// Drawer
+            DrawerWidget(maxDrawerWidth: maxDrawerWidth)
           ],
         ),
       ),

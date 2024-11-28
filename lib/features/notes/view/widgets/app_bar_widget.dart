@@ -13,6 +13,7 @@ class AppBarWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SliverAppBar(
+      backgroundColor: Colors.white,
       centerTitle: true,
       toolbarHeight: 0,
       collapsedHeight: 0,
